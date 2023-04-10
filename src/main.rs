@@ -1,24 +1,24 @@
 extern crate sdl2;
 
+use core::ops::Add;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::pixels::Color;
+use sdl2::rect::Rect;
 use sdl2::render::WindowCanvas;
 use sdl2::video::Window;
-use sdl2::rect::Rect;
 use std::time::Duration;
-use core::ops::Add;
 
 pub enum GameState {
     Playing,
-    Paused
+    Paused,
 }
 
 pub enum PlayerDirection {
     Up,
     Down,
     Left,
-    Right
+    Right,
 }
 
 #[derive(Copy, Clone)]
@@ -36,13 +36,13 @@ pub struct GameContext {
     pub player_position: Vec<Point>,
     pub player_direction: PlayerDirection,
     pub food: Point,
-    pub state: GameState
+    pub state: GameState,
 }
 
 impl GameContext {
     pub fn new() -> GameContext {
         GameContext {
-            player_position: vec![Point(3, 1), Point(2,1), Point(1,1)],
+            player_position: vec![Point(3, 1), Point(2, 1), Point(1, 1)],
             player_direction: PlayerDirection::Right,
             state: GameState::Paused,
             food: Point(3, 3),
@@ -85,7 +85,7 @@ impl GameContext {
     pub fn toggle_pause(&mut self) {
         self.state = match self.state {
             GameState::Playing => GameState::Paused,
-            GameState::Paused => GameState::Playing
+            GameState::Paused => GameState::Playing,
         }
     }
 }
@@ -95,23 +95,23 @@ const GRID_Y_SIZE: u32 = 30;
 const DOT_SIZE_IN_PXS: u32 = 20;
 
 pub struct Renderer {
-    canvas: WindowCanvas
+    canvas: WindowCanvas,
 }
 
 impl Renderer {
     pub fn new(window: Window) -> Result<Renderer, String> {
         let canvas = window.into_canvas().build().map_err(|e| e.to_string())?;
-        Ok(Renderer{canvas})
+        Ok(Renderer { canvas })
     }
 
     fn draw_dot(&mut self, point: &Point) -> Result<(), String> {
         let Point(x, y) = point;
         self.canvas.fill_rect(Rect::new(
-                x * DOT_SIZE_IN_PXS as i32,
-                y * DOT_SIZE_IN_PXS as i32,
-                DOT_SIZE_IN_PXS,
-                DOT_SIZE_IN_PXS,
-                ))?;
+            x * DOT_SIZE_IN_PXS as i32,
+            y * DOT_SIZE_IN_PXS as i32,
+            DOT_SIZE_IN_PXS,
+            DOT_SIZE_IN_PXS,
+        ))?;
 
         Ok(())
     }
@@ -148,7 +148,6 @@ impl Renderer {
         self.draw_dot(&context.food)?;
         Ok(())
     }
-
 }
 
 pub fn main() -> Result<(), String> {
@@ -156,7 +155,11 @@ pub fn main() -> Result<(), String> {
     let video_subsystem = sdl_context.video()?;
 
     let window = video_subsystem
-        .window("Snake Game", GRID_X_SIZE * DOT_SIZE_IN_PXS, GRID_Y_SIZE * DOT_SIZE_IN_PXS)
+        .window(
+            "Snake Game",
+            GRID_X_SIZE * DOT_SIZE_IN_PXS,
+            GRID_Y_SIZE * DOT_SIZE_IN_PXS,
+        )
         .position_centered()
         .opengl()
         .build()
@@ -173,16 +176,17 @@ pub fn main() -> Result<(), String> {
         for event in event_pump.poll_iter() {
             match event {
                 Event::Quit { .. } => break 'running,
-                Event::KeyDown { keycode: Some(keycode), .. } => {
-                    match keycode {
-                        Keycode::W => context.move_up(),
-                        Keycode::A => context.move_left(),
-                        Keycode::S => context.move_down(),
-                        Keycode::D => context.move_right(),
-                        Keycode::Escape => context.toggle_pause(),
-                        _ => {}
-                    }
-                }
+                Event::KeyDown {
+                    keycode: Some(keycode),
+                    ..
+                } => match keycode {
+                    Keycode::W => context.move_up(),
+                    Keycode::A => context.move_left(),
+                    Keycode::S => context.move_down(),
+                    Keycode::D => context.move_right(),
+                    Keycode::Escape => context.toggle_pause(),
+                    _ => {}
+                },
                 _ => {}
             }
         }
