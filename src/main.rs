@@ -32,6 +32,10 @@ impl Add<Point> for Point {
     }
 }
 
+const GRID_X_SIZE: i32 = 40;
+const GRID_Y_SIZE: i32 = 30;
+const DOT_SIZE_IN_PXS: i32 = 20;
+
 pub struct GameContext {
     pub player_position: Vec<Point>,
     pub player_direction: PlayerDirection,
@@ -58,6 +62,14 @@ impl GameContext {
             PlayerDirection::Down => *head_position + Point(0, 1),
             PlayerDirection::Right => *head_position + Point(1, 0),
             PlayerDirection::Left => *head_position + Point(-1, 0),
+        };
+
+        let next_head_position = match next_head_position {
+            Point(GRID_X_SIZE, y) => Point(0, y),
+            Point(-1, y) => Point(GRID_X_SIZE-1, y),
+            Point(x, GRID_Y_SIZE) => Point(x, 0),
+            Point(x, -1) => Point(x, GRID_Y_SIZE-1),
+            _ => next_head_position
         };
 
         self.player_position.pop();
@@ -90,10 +102,6 @@ impl GameContext {
     }
 }
 
-const GRID_X_SIZE: u32 = 40;
-const GRID_Y_SIZE: u32 = 30;
-const DOT_SIZE_IN_PXS: u32 = 20;
-
 pub struct Renderer {
     canvas: WindowCanvas,
 }
@@ -109,8 +117,8 @@ impl Renderer {
         self.canvas.fill_rect(Rect::new(
             x * DOT_SIZE_IN_PXS as i32,
             y * DOT_SIZE_IN_PXS as i32,
-            DOT_SIZE_IN_PXS,
-            DOT_SIZE_IN_PXS,
+            DOT_SIZE_IN_PXS.try_into().unwrap(),
+            DOT_SIZE_IN_PXS.try_into().unwrap(),
         ))?;
 
         Ok(())
@@ -157,8 +165,8 @@ pub fn main() -> Result<(), String> {
     let window = video_subsystem
         .window(
             "Snake Game",
-            GRID_X_SIZE * DOT_SIZE_IN_PXS,
-            GRID_Y_SIZE * DOT_SIZE_IN_PXS,
+            (GRID_X_SIZE * DOT_SIZE_IN_PXS).try_into().unwrap(),
+            (GRID_Y_SIZE * DOT_SIZE_IN_PXS).try_into().unwrap(),
         )
         .position_centered()
         .opengl()
