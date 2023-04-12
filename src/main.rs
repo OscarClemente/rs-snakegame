@@ -1,6 +1,7 @@
 extern crate sdl2;
 
 use core::ops::Add;
+use rand::Rng;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::pixels::Color;
@@ -8,7 +9,6 @@ use sdl2::rect::Rect;
 use sdl2::render::WindowCanvas;
 use sdl2::video::Window;
 use std::time::Duration;
-use rand::Rng;
 
 #[derive(Copy, Clone, PartialEq, Eq)]
 pub enum GameState {
@@ -18,6 +18,7 @@ pub enum GameState {
     Won,
 }
 
+#[derive(Copy, Clone, PartialEq, Eq)]
 pub enum PlayerDirection {
     Up,
     Down,
@@ -98,19 +99,27 @@ impl GameContext {
     }
 
     pub fn move_up(&mut self) {
-        self.player_direction = PlayerDirection::Up;
+        if self.player_direction != PlayerDirection::Down {
+            self.player_direction = PlayerDirection::Up;
+        }
     }
 
     pub fn move_down(&mut self) {
-        self.player_direction = PlayerDirection::Down;
+        if self.player_direction != PlayerDirection::Up {
+            self.player_direction = PlayerDirection::Down;
+        }
     }
 
     pub fn move_right(&mut self) {
-        self.player_direction = PlayerDirection::Right;
+        if self.player_direction != PlayerDirection::Left {
+            self.player_direction = PlayerDirection::Right;
+        }
     }
 
     pub fn move_left(&mut self) {
-        self.player_direction = PlayerDirection::Left;
+        if self.player_direction != PlayerDirection::Right {
+            self.player_direction = PlayerDirection::Left;
+        }
     }
 
     pub fn toggle_pause(&mut self) {
