@@ -8,10 +8,14 @@ use sdl2::rect::Rect;
 use sdl2::render::WindowCanvas;
 use sdl2::video::Window;
 use std::time::Duration;
+use rand::Rng;
 
+#[derive(Copy, Clone, PartialEq, Eq)]
 pub enum GameState {
     Playing,
     Paused,
+    Failed,
+    Won,
 }
 
 pub enum PlayerDirection {
@@ -21,7 +25,7 @@ pub enum PlayerDirection {
     Right,
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq, Eq)]
 pub struct Point(pub i32, pub i32);
 
 impl Add<Point> for Point {
@@ -53,29 +57,44 @@ impl GameContext {
         }
     }
     pub fn next_tick(&mut self) {
-        if let GameState::Paused = self.state {
+        if self.state != GameState::Playing {
             return;
         }
         let head_position = self.player_position.first().unwrap();
-        let next_head_position = match self.player_direction {
+        let mut next_head_position = match self.player_direction {
             PlayerDirection::Up => *head_position + Point(0, -1),
             PlayerDirection::Down => *head_position + Point(0, 1),
             PlayerDirection::Right => *head_position + Point(1, 0),
             PlayerDirection::Left => *head_position + Point(-1, 0),
         };
 
-        let next_head_position = match next_head_position {
-            Point(GRID_X_SIZE, y) => Point(0, y),
-            Point(-1, y) => Point(GRID_X_SIZE-1, y),
-            Point(x, GRID_Y_SIZE) => Point(x, 0),
-            Point(x, -1) => Point(x, GRID_Y_SIZE-1),
-            _ => next_head_position
-        };
+        next_head_position = self.position_wrapping(next_head_position);
+        if self.player_position.contains(&next_head_position) {
+            self.state = GameState::Failed;
+            return;
+        }
 
-        self.player_position.pop();
+        if next_head_position != self.food {
+            self.player_position.pop();
+        }
         self.player_position.reverse();
         self.player_position.push(next_head_position);
         self.player_position.reverse();
+
+        if next_head_position == self.food {
+            let mut rng = rand::thread_rng();
+            self.food = Point(rng.gen_range(0..GRID_X_SIZE), rng.gen_range(0..GRID_Y_SIZE));
+        }
+    }
+
+    fn position_wrapping(&mut self, next_head_position: Point) -> Point {
+        match next_head_position {
+            Point(GRID_X_SIZE, y) => Point(0, y),
+            Point(-1, y) => Point(GRID_X_SIZE - 1, y),
+            Point(x, GRID_Y_SIZE) => Point(x, 0),
+            Point(x, -1) => Point(x, GRID_Y_SIZE - 1),
+            _ => next_head_position,
+        }
     }
 
     pub fn move_up(&mut self) {
@@ -98,6 +117,7 @@ impl GameContext {
         self.state = match self.state {
             GameState::Playing => GameState::Paused,
             GameState::Paused => GameState::Playing,
+            state => state,
         }
     }
 }
@@ -137,6 +157,8 @@ impl Renderer {
         let color = match context.state {
             GameState::Playing => Color::RGB(0, 0, 0),
             GameState::Paused => Color::RGB(30, 30, 30),
+            GameState::Won => Color::RGB(30, 200, 30),
+            GameState::Failed => Color::RGB(200, 30, 30),
         };
         self.canvas.set_draw_color(color);
         self.canvas.clear();
@@ -199,16 +221,15 @@ pub fn main() -> Result<(), String> {
             }
         }
 
-        ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 30));
+        ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 100));
 
         frame_counter += 1;
         if frame_counter % 10 == 0 {
-            context.next_tick(); // We will implement this yet.
+            context.next_tick();
             frame_counter = 0;
         }
 
         renderer.draw(&context)?;
-        // The rest of the game loop goes here...
     }
 
     Ok(())
