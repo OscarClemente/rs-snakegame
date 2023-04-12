@@ -54,7 +54,7 @@ impl GameContext {
             player_position: vec![Point(3, 1), Point(2, 1), Point(1, 1)],
             player_direction: PlayerDirection::Right,
             state: GameState::Paused,
-            food: Point(3, 3),
+            food: random_point(),
         }
     }
     pub fn next_tick(&mut self) {
@@ -83,8 +83,7 @@ impl GameContext {
         self.player_position.reverse();
 
         if next_head_position == self.food {
-            let mut rng = rand::thread_rng();
-            self.food = Point(rng.gen_range(0..GRID_X_SIZE), rng.gen_range(0..GRID_Y_SIZE));
+            self.regenerate_food();
         }
     }
 
@@ -129,6 +128,19 @@ impl GameContext {
             state => state,
         }
     }
+
+    pub fn regenerate_food(&mut self) {
+        let mut new_food = random_point();
+        while self.player_position.contains(&new_food) {
+            new_food = random_point();
+        }
+        self.food = new_food;
+    }
+}
+
+fn random_point() -> Point {
+    let mut rng = rand::thread_rng();
+    Point(rng.gen_range(0..GRID_X_SIZE), rng.gen_range(0..GRID_Y_SIZE))
 }
 
 pub struct Renderer {
@@ -219,10 +231,10 @@ pub fn main() -> Result<(), String> {
                     keycode: Some(keycode),
                     ..
                 } => match keycode {
-                    Keycode::W => context.move_up(),
-                    Keycode::A => context.move_left(),
-                    Keycode::S => context.move_down(),
-                    Keycode::D => context.move_right(),
+                    Keycode::W | Keycode::K => context.move_up(),
+                    Keycode::A | Keycode::H => context.move_left(),
+                    Keycode::S | Keycode::J => context.move_down(),
+                    Keycode::D | Keycode::L => context.move_right(),
                     Keycode::Escape => context.toggle_pause(),
                     _ => {}
                 },
