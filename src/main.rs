@@ -40,6 +40,7 @@ impl Add<Point> for Point {
 const GRID_X_SIZE: i32 = 40;
 const GRID_Y_SIZE: i32 = 30;
 const DOT_SIZE_IN_PXS: i32 = 20;
+const WIN_LENGTH: usize = 30;
 
 pub struct GameContext {
     pub player_position: Vec<Point>,
@@ -84,6 +85,9 @@ impl GameContext {
 
         if next_head_position == self.food {
             self.regenerate_food();
+            if self.player_position.len() == WIN_LENGTH {
+                self.state = GameState::Won;
+            }
         }
     }
 
