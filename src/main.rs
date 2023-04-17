@@ -45,6 +45,7 @@ const WIN_LENGTH: usize = 30;
 pub struct GameContext {
     pub player_position: Vec<Point>,
     pub player_direction: PlayerDirection,
+    pub next_player_direction: PlayerDirection,
     pub food: Point,
     pub state: GameState,
 }
@@ -54,6 +55,7 @@ impl GameContext {
         GameContext {
             player_position: vec![Point(3, 1), Point(2, 1), Point(1, 1)],
             player_direction: PlayerDirection::Right,
+            next_player_direction: PlayerDirection::Right,
             state: GameState::Paused,
             food: random_point(),
         }
@@ -62,6 +64,7 @@ impl GameContext {
         if self.state != GameState::Playing {
             return;
         }
+        self.player_direction = self.next_player_direction;
         let head_position = self.player_position.first().unwrap();
         let mut next_head_position = match self.player_direction {
             PlayerDirection::Up => *head_position + Point(0, -1),
@@ -103,25 +106,25 @@ impl GameContext {
 
     pub fn move_up(&mut self) {
         if self.player_direction != PlayerDirection::Down {
-            self.player_direction = PlayerDirection::Up;
+            self.next_player_direction = PlayerDirection::Up;
         }
     }
 
     pub fn move_down(&mut self) {
         if self.player_direction != PlayerDirection::Up {
-            self.player_direction = PlayerDirection::Down;
+            self.next_player_direction = PlayerDirection::Down;
         }
     }
 
     pub fn move_right(&mut self) {
         if self.player_direction != PlayerDirection::Left {
-            self.player_direction = PlayerDirection::Right;
+            self.next_player_direction = PlayerDirection::Right;
         }
     }
 
     pub fn move_left(&mut self) {
         if self.player_direction != PlayerDirection::Right {
-            self.player_direction = PlayerDirection::Left;
+            self.next_player_direction = PlayerDirection::Left;
         }
     }
 
